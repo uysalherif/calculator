@@ -88,9 +88,12 @@ button.btn {
   border-radius: 20px;
   background-color: #ffb703;
   cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 img {
   height: 2rem;
-  width: 2.5rem;
+  width: 2rem;
 }

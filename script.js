@@ -4,7 +4,7 @@ const buttons = document.querySelectorAll('.btn');
 const uiOperation = document.querySelector('.ui-operation');
 const uiInput = document.querySelector('.ui-input');
 
-const regex = new RegExp('[+-/*]');
+const regex = new RegExp('[+-÷×]');
 
 function operate(operator, a, b) {
   switch (operator) {
@@ -12,9 +12,9 @@ function operate(operator, a, b) {
       return Number(a) + Number(b);
     case '-':
       return a - b;
-    case '*':
+    case '×':
       return a * b;
-    case '/':
+    case '÷':
       return a / b;
   }
 }
