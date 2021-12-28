@@ -1,97 +1,144 @@
 'use strict';
 
-const buttons = document.querySelectorAll('.btn');
-const uiOperation = document.querySelector('.ui-operation');
-const uiInput = document.querySelector('.ui-input');
+let firstOperand = '';
+let secondOperand = '';
+let currentOperation = null;
+let resetInput = false;
 
-const regex = new RegExp('[+-÷×]');
+const historyScreen = document.querySelector('.ui-history');
+const inputScreen = document.querySelector('.ui-input');
+const numberButtons = document.querySelectorAll('.btn-number');
+const operatorButtons = document.querySelectorAll('.btn-operator');
+const equalsButton = document.querySelector('.btn-equal');
+const deleteButton = document.querySelector('.btn-delete');
+const clearButton = document.querySelector('.btn-clear');
+const pointButton = document.querySelector('.btn-point');
 
-function operate(operator, a, b) {
-  switch (operator) {
-    case '+':
-      return Number(a) + Number(b);
-    case '-':
-      return a - b;
-    case '×':
-      return a * b;
-    case '÷':
-      return a / b;
+window.addEventListener('keydown', insertKeyboardInput);
+equalsButton.addEventListener('click', equals);
+clearButton.addEventListener('click', clearScreen);
+deleteButton.addEventListener('click', deleteNumber);
+pointButton.addEventListener('click', appendPoint);
+
+numberButtons.forEach(function (btn) {
+  btn.addEventListener('click', () => appendNumber(btn.textContent)); // try e
+});
+
+operatorButtons.forEach(function (btn) {
+  btn.addEventListener('click', () => setOperation(btn.textContent));
+});
+
+function setOperation(operator) {
+  // If there is a point at the end of the number, remove it
+  if (inputScreen.textContent.endsWith('.'))
+    inputScreen.textContent = inputScreen.textContent.slice(0, -1);
+
+  // Enter first operand and operator to history screen
+  if (currentOperation === null) {
+    historyScreen.textContent = `${inputScreen.textContent} ${operator}`;
+
+    // Change Operator Sign
+  } else if (inputScreen.textContent === '' && currentOperation !== null) {
+    historyScreen.textContent =
+      historyScreen.textContent.slice(0, -1) + operator;
+
+    // Calculate Operation
+  } else {
+    firstOperand = historyScreen.textContent.split(' ')[0];
+    secondOperand = inputScreen.textContent;
+
+    historyScreen.textContent =
+      operate(currentOperation, firstOperand, secondOperand) + ' ' + operator;
+  }
+  currentOperation = operator;
+  inputScreen.textContent = '';
+}
+
+function equals() {
+  if (currentOperation !== null && inputScreen.textContent !== '') {
+    firstOperand = historyScreen.textContent.split(' ')[0];
+    secondOperand = inputScreen.textContent;
+
+    historyScreen.textContent += ` ${inputScreen.textContent} =`;
+
+    inputScreen.textContent = operate(
+      currentOperation,
+      firstOperand,
+      secondOperand
+    );
+    resetInput = true;
+    currentOperation = null;
   }
 }
 
-let isOldNumb = false;
-let twoNumbEntered = false;
-let a;
-let b;
-let operator;
+function appendNumber(number) {
+  if (inputScreen.textContent === '0') {
+    inputScreen.textContent = number;
+  } else if (resetInput) {
+    inputScreen.textContent = number;
+    historyScreen.textContent = '';
+    resetInput = false;
+  } else {
+    inputScreen.textContent += number;
+  }
+}
 
-buttons.forEach(function (btn) {
-  btn.addEventListener('click', function () {
-    if (btn.classList.contains('btn-number')) {
-      if (uiInput.textContent === '0') {
-        uiInput.textContent = btn.textContent;
-      } else {
-        if (regex.test(uiOperation.textContent)) {
-          if (isOldNumb) {
-            uiInput.textContent = btn.textContent;
-            isOldNumb = false;
-            twoNumbEntered = true;
-          } else {
-            uiInput.textContent += btn.textContent;
-          }
-        } else {
-          uiInput.textContent += btn.textContent;
-        }
-      }
-    } else if (btn.classList.contains('btn-operator')) {
-      a = uiOperation.textContent.split(' ')[0];
-      b = uiInput.textContent;
-      operator = uiOperation.textContent.split(' ')[1];
+function clearScreen() {
+  historyScreen.textContent = '';
+  inputScreen.textContent = 0;
+  currentOperation = null;
+}
 
-      if (!regex.test(uiOperation.textContent)) {
-        uiOperation.textContent = uiInput.textContent + ' ' + btn.textContent;
-        isOldNumb = true;
-      } else if (regex.test(uiOperation.textContent) && !twoNumbEntered) {
-        if (!uiOperation.textContent.includes('=')) {
-          uiOperation.textContent =
-            uiOperation.textContent.slice(0, -1) + btn.textContent;
-        } else {
-          if (!(btn.textContent === '=')) {
-            uiOperation.textContent =
-              uiInput.textContent + ' ' + btn.textContent;
-          }
-        }
-      } else if (regex.test(uiOperation.textContent)) {
-        if (btn.textContent === '=') {
-          uiOperation.textContent += ' ' + b + '  =';
-        } else {
-          uiOperation.textContent =
-            operate(operator, a, b) + ' ' + btn.textContent;
-        }
-        uiInput.textContent = operate(operator, a, b);
-        twoNumbEntered = false;
-        isOldNumb = true;
+function deleteNumber() {
+  if (inputScreen.textContent.length === 1) {
+    inputScreen.textContent = 0;
+  } else if (inputScreen.textContent !== '0') {
+    inputScreen.textContent = inputScreen.textContent.slice(0, -1);
+  }
+}
+
+function appendPoint() {
+  if (resetInput) return;
+  if (!inputScreen.textContent.includes('.') && inputScreen.textContent !== '')
+    inputScreen.textContent += '.';
+}
+
+function insertKeyboardInput(e) {
+  if (e.key >= 0 && e.key <= 9) appendNumber(e.key);
+  if (e.key === 'Backspace') deleteNumber();
+  if (e.key === 'Enter' || e.key === '=') equals();
+  if (e.key === 'Escape') clearScreen();
+  if (
+    e.key === '+' ||
+    e.key === '-' ||
+    e.key === '*' ||
+    e.key === '/' ||
+    e.key === '^'
+  )
+    setOperation(e.key);
+}
+
+function operate(operator, a, b) {
+  a = Number(a);
+  b = Number(b);
+  switch (operator) {
+    case '+':
+      return a + b;
+    case '-':
+      return a - b;
+    case '×':
+    case '*':
+      return a * b;
+    case '÷':
+    case '/':
+      if (b === 0) {
+        resetInput = true;
+        return 'How dare you!!!';
       }
-    } else if (btn.classList.contains('btn-dot')) {
-      if (!uiInput.textContent.includes('.'))
-        uiInput.textContent += btn.textContent;
-    } else if (btn.classList.contains('btn-sqrt')) {
-      let x = uiInput.textContent;
-      uiOperation.textContent = Math.sqrt(x);
-      uiInput.textContent = Math.sqrt(x);
-    } else if (btn.classList.contains('btn-pow')) {
-      let x = uiInput.textContent;
-      uiOperation.textContent = Math.pow(x, 2);
-      uiInput.textContent = Math.pow(x, 2);
-    } else if (btn.classList.contains('btn-clear')) {
-      uiOperation.textContent = '';
-      uiInput.textContent = 0;
-    } else if (btn.classList.contains('btn-del')) {
-      if (uiInput.textContent.length === 1) {
-        uiInput.textContent = 0;
-      } else if (uiInput.textContent !== '0') {
-        uiInput.textContent = uiInput.textContent.slice(0, -1);
-      }
-    }
-  });
-});
+      return a / b;
+    case '√':
+      return Math.pow(a, 1 / b);
+    case '^':
+      return Math.pow(a, b);
+  }
+}

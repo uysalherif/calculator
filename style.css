@@ -6,7 +6,6 @@
 
 body {
   height: 100vh;
-  width: 100vw;
   background: rgb(146, 58, 180);
   background: linear-gradient(
     310deg,
@@ -50,28 +49,27 @@ div.screen {
   flex-direction: column;
   justify-content: center;
   align-items: flex-end;
+  gap: 10px;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 div.ui {
-  width: 95%;
   height: 40%;
   font-size: 2rem;
   text-align: end;
   padding-right: 15px;
   display: flex;
   justify-content: flex-end;
-  overflow: hidden;
-  white-space: nowrap;
+  align-items: center;
 }
 
-div.ui-operation {
+div.ui-history {
   font-size: 2rem;
   opacity: 0.8;
-  margin-right: 5px;
 }
 
 div.ui-input {
-  margin-right: 5px;
   font-size: 2.5rem;
 }
 
